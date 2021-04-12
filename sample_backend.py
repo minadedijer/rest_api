@@ -8,7 +8,9 @@ CORS(app)
 
 @app.route('/')
 def hello_world():
-    return 'Hello, world!'
+    return 'Hello World!'
+
+
 users = { 
    'users_list' :
    [
@@ -33,13 +35,18 @@ users = {
          'job': 'Aspring actress',
       },
       {
+         'id' : 'bjk123',
+         'name': 'Susie',
+         'job': 'Doctor',
+      },
+      {
          'id' : 'zap555', 
          'name': 'Dennis',
          'job': 'Bartender',
       }
    ]
 }
-
+    
 @app.route('/users', methods=['GET', 'POST', 'DELETE'])
 def get_users():
    if request.method == 'GET':
@@ -74,7 +81,7 @@ def get_users():
       print(userToAdd)
       users['users_list'].append(userToAdd)
       resp = jsonify(userToAdd)
-      resp.status_code = 201 #optionally, you can always set a response code. 
+      resp.status_code = 201  
       return resp
    elif request.method == 'DELETE':
       userToDelete = request.args.get('id')

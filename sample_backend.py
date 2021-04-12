@@ -1,15 +1,19 @@
 from flask import Flask
+from flask_cors import CORS
 from flask import request
 from flask import jsonify
 import json
 
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/')
 def hello_world():
     return 'Hello, World!'
-    
+   
+
+
 users = { 
    'users_list' :
    [

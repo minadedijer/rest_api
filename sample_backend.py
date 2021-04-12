@@ -1,24 +1,14 @@
 from flask import Flask
-from flask_cors import CORS
 from flask import request
 from flask import jsonify
-import string
-import json
-import random
-
-
-def randomID():
-    return ''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for _ in range(16))    
+from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
-   
-
-
+    return 'Hello, world!'
 users = { 
    'users_list' :
    [
@@ -43,11 +33,6 @@ users = {
          'job': 'Aspring actress',
       },
       {
-         'id' : 'bjk123', 
-         'name': 'Susie',
-         'job': 'Doctor',
-      },
-      {
          'id' : 'zap555', 
          'name': 'Dennis',
          'job': 'Bartender',
@@ -55,54 +40,59 @@ users = {
    ]
 }
 
-@app.route('/users/<user_id>', methods=['GET', 'DELETE'])
-def get_user(user_id):
-    if request.method == 'GET':
-        for user in users['users_list']:
-            if user_id == user['id']:
-                return user
-        return jsonify(success=False, status=404)
-    elif request.method == 'DELETE':
-        to_delete = None
-        for i, user in enumerate(users['users_list']):
-            if user_id == user['id']:
-                del users['users_list'][i]
-                return jsonify(success=True)
-
-        return make_response(jsonify(success=False), 404)
-
-
-def name_filter(name):
-    return lambda x: x['name'] == name
-
-
-def job_filter(job):
-    return lambda x: x['job'] == job
-
-
-@app.route('/users', methods=['GET', 'POST'])
+@app.route('/users', methods=['GET', 'POST', 'DELETE'])
 def get_users():
-    if request.method == 'GET':
-        query = users['users_list']
+   if request.method == 'GET':
+      search_username = request.args.get('name')
+      search_job = request.args.get('job')
+      if search_username and search_job :
+         subdict = {'users_list' : []}
+         subd2 = {'users_list' : []}
+         for user in users['users_list']:
+            if user['name'] == search_username:
+               subdict['users_list'].append(user)
+         for user2 in subdict['users_list']:
+            if user2['job'] == search_job:
+               subd2['users_list'].append(user2)
 
-        search_username = request.args.get('name')
-        if search_username:
-            query = filter(name_filter(search_username), query)
+         return subd2
+      elif search_username :
+         subdict = {'users_list' : []}
+         for user in users['users_list']:
+            if user['name'] == search_username:
+               subdict['users_list'].append(user)
+         return subdict
+      elif search_job :
+         subdict = {'users_list' : []}
+         for user in users['users_list']:
+            if user['job'] == search_job:
+               subdict['users_list'].append(user)
+         return subdict
+      return users
+   elif request.method == 'POST':
+      userToAdd = request.get_json()
+      print(userToAdd)
+      users['users_list'].append(userToAdd)
+      resp = jsonify(userToAdd)
+      resp.status_code = 201 #optionally, you can always set a response code. 
+      return resp
+   elif request.method == 'DELETE':
+      userToDelete = request.args.get('id')
+      if userToDelete : 
+         subdict = {'users_list' : []}
+         for user in users['users_list']:
+            if user['id'] == userToDelete:
+               users['users_list'].remove(user)
+      resp = jsonify(users)
+      resp.status_code = 200
+      return resp
 
-        search_job = request.args.get('job')
-        if search_job:
-            query = filter(job_filter(search_job), query)
 
-        return jsonify(list(query))
-    elif request.method == 'POST':
-        userToAdd = {**request.get_json(), 'id': random_string()}
-        users['users_list'].append(userToAdd)
-        resp = jsonify(success=True)
-        return make_response(jsonify(userToAdd), 201)
-    raise Exception("Unsupported method")
-
-
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
-
+@app.route('/users/<id>')
+def get_user(id):
+   if id :
+      for user in users['users_list']:
+        if user['id'] == id:
+           return user
+      return ({})
+   return users
